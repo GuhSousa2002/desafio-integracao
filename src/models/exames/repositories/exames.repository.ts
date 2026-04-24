@@ -1,24 +1,49 @@
 import { Injectable } from '@nestjs/common';
-import { CreateExameDto } from '../dto/create-exame.dto';
-import { ExameSchema } from '../schemas/exame.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import { Exame, ExameDocument } from '../schemas/exame.schema';
 
 @Injectable()
 export class ExamesRepository {
-  private readonly exames: ExameSchema[] = [];
+  constructor(
 
-  create(createExameDto: CreateExameDto): ExameSchema {
-    const exame: ExameSchema = {
-      id: `${this.exames.length + 1}`,
-      nome: createExameDto.nome,
-      status: 'pendente',
-    };
+    @InjectModel(Exame.name)
+    private readonly exameModel: Model<ExameDocument>,
+  ) { }
 
-    this.exames.push(exame);
 
-    return exame;
+  async create(data: Partial<Exame>): Promise<ExameDocument> {
+    return this.exameModel.create(data);
   }
 
-  findAll(): ExameSchema[] {
-    return this.exames;
+
+  async findByAccessionNumber(
+    accessionNumber: string,
+  ): Promise<ExameDocument | null> {
+    return this.exameModel.findOne({ accessionNumber }).exec();
+  }
+
+
+  async updateByAccessionNumber(
+    accessionNumber: string,
+    data: Partial<Exame>,
+  ): Promise<ExameDocument | null> {
+    return this.exameModel
+      .findOneAndUpdate(
+        { accessionNumber },
+        data,
+        { new: true },
+      )
+      .exec();
+  }
+
+
+  async findAll(): Promise<ExameDocument[]> {
+    return this.exameModel.find().exec();
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.exameModel.deleteMany({});
   }
 }

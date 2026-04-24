@@ -1,24 +1,51 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePedidoDto } from '../dto/create-pedido.dto';
-import { PedidoSchema } from '../schemas/pedido.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import { Pedido, PedidoDocument } from '../schemas/pedido.schema';
 
 @Injectable()
 export class PedidosRepository {
-  private readonly pedidos: PedidoSchema[] = [];
+  constructor(
 
-  create(createPedidoDto: CreatePedidoDto): PedidoSchema {
-    const pedido: PedidoSchema = {
-      id: `${this.pedidos.length + 1}`,
-      numero: createPedidoDto.numero,
-      situacao: 'aberto',
-    };
+    @InjectModel(Pedido.name)
+    private readonly pedidoModel: Model<PedidoDocument>,
+  ) { }
 
-    this.pedidos.push(pedido);
 
-    return pedido;
+  async create(data: Partial<Pedido>): Promise<PedidoDocument> {
+    return this.pedidoModel.create(data);
   }
 
-  findAll(): PedidoSchema[] {
-    return this.pedidos;
+  async findByCodigoPedido(
+    codigoPedido: number,
+  ): Promise<PedidoDocument | null> {
+    return this.pedidoModel.findOne({ codigoPedido }).exec();
+  }
+
+
+  async findByAccessionNumber(
+    accessionNumber: string,
+  ): Promise<PedidoDocument | null> {
+    return this.pedidoModel
+      .findOne({
+        'exames.accessionNumber': accessionNumber,
+      })
+      .exec();
+  }
+
+
+  async save(pedido: PedidoDocument): Promise<PedidoDocument> {
+    return pedido.save();
+  }
+
+
+  async findAll(): Promise<PedidoDocument[]> {
+    return this.pedidoModel.find().exec();
+  }
+
+
+  async deleteAll(): Promise<void> {
+    await this.pedidoModel.deleteMany({});
   }
 }

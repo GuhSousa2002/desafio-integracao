@@ -1,14 +1,138 @@
-import { DocumentosRepository } from '../repositories/documentos.repository';
+import { ConflictException } from '@nestjs/common';
 import { DocumentosService } from '../services/documentos.service';
 
 describe('DocumentosService', () => {
-  it('deve criar e listar documentos', () => {
-    const repository = new DocumentosRepository();
-    const service = new DocumentosService(repository);
+  let service: DocumentosService;
 
-    service.create({ titulo: 'Documento A' });
+  const documentosRepositoryMock = {
+    findByCodigoPedidoAndCodigoDocumento: jest.fn(),
+    create: jest.fn(),
+    findByCodigoPedido: jest.fn(),
+  };
 
-    expect(service.findAll()).toHaveLength(1);
-    expect(service.findAll()[0]?.titulo).toBe('Documento A');
+  const pedidosRepositoryMock = {
+    findByCodigoPedido: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    service = new DocumentosService(
+      documentosRepositoryMock as any,
+      pedidosRepositoryMock as any,
+    );
+  });
+
+  describe('receberDocumento', () => {
+    it('deve lançar erro quando existir documento duplicado', async () => {
+      const dto = {
+        codigoDocumento: 251,
+        codigoPedido: 615,
+        nomeDocumento: 'PEDIDO',
+        documento: 'base64',
+      };
+
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue({
+        codigoDocumento: 251,
+        codigoPedido: 615,
+      });
+
+      await expect(service.receberDocumento(dto)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('deve criar documento com integrado = false quando pedido não existir', async () => {
+      const dto = {
+        codigoDocumento: 251,
+        codigoPedido: 615,
+        nomeDocumento: 'PEDIDO',
+        documento: 'base64',
+      };
+
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue(null);
+      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+
+      const result = await service.receberDocumento(dto);
+
+      expect(documentosRepositoryMock.create).toHaveBeenCalledWith({
+        ...dto,
+        integrado: false,
+      });
+
+      expect(result.documento.integrado).toBe(false);
+    });
+
+    it('deve criar documento com integrado = false quando pedido existir mas não estiver integrado', async () => {
+      const dto = {
+        codigoDocumento: 251,
+        codigoPedido: 615,
+        nomeDocumento: 'PEDIDO',
+        documento: 'base64',
+      };
+
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue({
+        codigoPedido: 615,
+        integrado: false,
+      });
+      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+
+      const result = await service.receberDocumento(dto);
+
+      expect(documentosRepositoryMock.create).toHaveBeenCalledWith({
+        ...dto,
+        integrado: false,
+      });
+
+      expect(result.documento.integrado).toBe(false);
+    });
+
+    it('deve criar documento com integrado = true quando pedido já estiver integrado', async () => {
+      const dto = {
+        codigoDocumento: 251,
+        codigoPedido: 615,
+        nomeDocumento: 'PEDIDO',
+        documento: 'base64',
+      };
+
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue({
+        codigoPedido: 615,
+        integrado: true,
+      });
+      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+
+      const result = await service.receberDocumento(dto);
+
+      expect(documentosRepositoryMock.create).toHaveBeenCalledWith({
+        ...dto,
+        integrado: true,
+      });
+
+      expect(result.documento.integrado).toBe(true);
+    });
+  });
+
+  describe('buscarPorCodigoPedido', () => {
+    it('deve retornar os documentos do pedido', async () => {
+      const documentos = [
+        {
+          codigoDocumento: 251,
+          codigoPedido: 615,
+          nomeDocumento: 'PEDIDO',
+          documento: 'base64',
+          integrado: false,
+        },
+      ];
+
+      documentosRepositoryMock.findByCodigoPedido.mockResolvedValue(documentos);
+
+      const result = await service.buscarPorCodigoPedido(615);
+
+      expect(documentosRepositoryMock.findByCodigoPedido).toHaveBeenCalledWith(615);
+      expect(result).toEqual(documentos);
+    });
   });
 });

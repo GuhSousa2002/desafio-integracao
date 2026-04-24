@@ -1,24 +1,65 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDocumentoDto } from '../dto/create-documento.dto';
-import { DocumentoSchema } from '../schemas/documento.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import {
+  Documento,
+  DocumentoDocument,
+} from '../schemas/documento.schema';
 
 @Injectable()
 export class DocumentosRepository {
-  private readonly documentos: DocumentoSchema[] = [];
+  constructor(
 
-  create(createDocumentoDto: CreateDocumentoDto): DocumentoSchema {
-    const documento: DocumentoSchema = {
-      id: `${this.documentos.length + 1}`,
-      titulo: createDocumentoDto.titulo,
-      criadoEm: new Date(),
-    };
+    @InjectModel(Documento.name)
+    private readonly documentoModel: Model<DocumentoDocument>,
+  ) { }
 
-    this.documentos.push(documento);
 
-    return documento;
+  async create(data: Partial<Documento>): Promise<DocumentoDocument> {
+    return this.documentoModel.create(data);
   }
 
-  findAll(): DocumentoSchema[] {
-    return this.documentos;
+  async findByCodigoPedidoAndCodigoDocumento(
+    codigoPedido: number,
+    codigoDocumento: number,
+  ): Promise<DocumentoDocument | null> {
+    return this.documentoModel
+      .findOne({
+        codigoPedido,
+        codigoDocumento,
+      })
+      .exec();
+  }
+
+
+  async findByCodigoPedido(
+    codigoPedido: number,
+  ): Promise<DocumentoDocument[]> {
+    return this.documentoModel.find({ codigoPedido }).exec();
+  }
+
+
+  async findPendentesByCodigoPedido(
+    codigoPedido: number,
+  ): Promise<DocumentoDocument[]> {
+    return this.documentoModel
+      .find({
+        codigoPedido,
+        integrado: false,
+      })
+      .exec();
+  }
+
+  async save(documento: DocumentoDocument): Promise<DocumentoDocument> {
+    return documento.save();
+  }
+
+  async findAll(): Promise<DocumentoDocument[]> {
+    return this.documentoModel.find().exec();
+  }
+
+  async deleteAll(): Promise<void> {
+    await this.documentoModel.deleteMany({});
   }
 }
