@@ -5,8 +5,6 @@ API backend desenvolvida para integrar pedidos médicos, exames e documentos, si
 
 ⚙️ 2. Tecnologias utilizadas
 
-Aqui você mostra maturidade técnica:
-
 ## Tecnologias
 
 - Node.js
@@ -93,7 +91,14 @@ A aplicação foi organizada seguindo o padrão modular do NestJS:
 - DTOs: validação e padronização dos dados de entrada
 - Schemas: definição das entidades no MongoDB
 
-🧩 7. Decisões técnicas (AQUI entra seu raciocínio)
+referência:
+https://docs.nestjs.com/openapi/introduction#document-options
+https://docs.nestjs.com/modules
+https://docs.nestjs.com/controllers
+https://docs.nestjs.com/techniques/mongodb
+https://docs.nestjs.com/deployment
+
+🧩 7. Decisões técnicas 
 
 
 ## Decisões técnicas
@@ -108,7 +113,7 @@ A estrutura foi organizada em camadas (controller, service e repository) para ma
 
 Os DTOs foram utilizados para garantir a padronização dos dados recebidos nos endpoints.
 
-O fluxo de desenvolvimento seguiu a seguinte ordem:
+O fluxo de desenvolvimento seguiu na seguinte ordem:
 
 1. Modelagem do banco
 2. Definição das entidades (schemas)
@@ -157,8 +162,8 @@ Essa imagem foi criada com a ideia de organizar os dados do projeto:
 
 ![Modelagem de dados](./docs/modelagem-dados.jpeg)
 
-
-❌ NÃO FOI FEITO:
+ 
+❌ 11. NÃO FOI FEITO:
 
 parsing real de DICOM
 HL7 real
