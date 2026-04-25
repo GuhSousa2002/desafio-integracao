@@ -49,7 +49,10 @@ npm run start:dev
 ### Rodando com Docker
 
 ```bash
+git clone https://github.com/GuhSousa2002/desafio-integracao.git
+cd desafio-integracao
 docker compose up --build
+
 ```
 
 ---
