@@ -1,6 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { PedidosService } from '../services/pedidos.service';
 
+type PedidosServiceDependencies = ConstructorParameters<typeof PedidosService>;
+
 describe('PedidosService', () => {
   let service: PedidosService;
 
@@ -18,8 +20,8 @@ describe('PedidosService', () => {
     jest.clearAllMocks();
 
     service = new PedidosService(
-      pedidosRepositoryMock as any,
-      examesRepositoryMock as any,
+      pedidosRepositoryMock as unknown as PedidosServiceDependencies[0],
+      examesRepositoryMock as unknown as PedidosServiceDependencies[1],
     );
   });
 
@@ -34,7 +36,9 @@ describe('PedidosService', () => {
 
       const result = await service.buscarPorCodigoPedido(616);
 
-      expect(pedidosRepositoryMock.findByCodigoPedido).toHaveBeenCalledWith(616);
+      expect(pedidosRepositoryMock.findByCodigoPedido).toHaveBeenCalledWith(
+        616,
+      );
       expect(result).toEqual(pedidoMock);
     });
 
@@ -67,7 +71,9 @@ describe('PedidosService', () => {
 
       pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue(null);
       examesRepositoryMock.findByAccessionNumber.mockResolvedValue(null);
-      pedidosRepositoryMock.create.mockImplementation(async (data) => data);
+      pedidosRepositoryMock.create.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberPedido(dto);
 
@@ -100,7 +106,9 @@ describe('PedidosService', () => {
       examesRepositoryMock.findByAccessionNumber.mockResolvedValue({
         accessionNumber: 'ACC-9001',
       });
-      pedidosRepositoryMock.create.mockImplementation(async (data) => data);
+      pedidosRepositoryMock.create.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberPedido(dto);
 
@@ -152,9 +160,13 @@ describe('PedidosService', () => {
         ],
       };
 
-      pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue(pedidoExistente);
+      pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue(
+        pedidoExistente,
+      );
       examesRepositoryMock.findByAccessionNumber.mockResolvedValue(null);
-      pedidosRepositoryMock.save.mockImplementation(async (data) => data);
+      pedidosRepositoryMock.save.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberPedido(dto);
 

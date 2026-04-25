@@ -2,19 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import {
-  Documento,
-  DocumentoDocument,
-} from '../schemas/documento.schema';
+import { Documento, DocumentoDocument } from '../schemas/documento.schema';
 
 @Injectable()
 export class DocumentosRepository {
   constructor(
-
     @InjectModel(Documento.name)
     private readonly documentoModel: Model<DocumentoDocument>,
-  ) { }
-
+  ) {}
 
   async create(data: Partial<Documento>): Promise<DocumentoDocument> {
     return this.documentoModel.create(data);
@@ -32,13 +27,9 @@ export class DocumentosRepository {
       .exec();
   }
 
-
-  async findByCodigoPedido(
-    codigoPedido: number,
-  ): Promise<DocumentoDocument[]> {
+  async findByCodigoPedido(codigoPedido: number): Promise<DocumentoDocument[]> {
     return this.documentoModel.find({ codigoPedido }).exec();
   }
-
 
   async findPendentesByCodigoPedido(
     codigoPedido: number,

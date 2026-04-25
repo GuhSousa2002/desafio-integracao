@@ -1,5 +1,7 @@
 import { ExamesRepository } from '../repositories/exames.repository';
 
+type ExameModel = ConstructorParameters<typeof ExamesRepository>[0];
+
 describe('ExamesRepository', () => {
   let repository: ExamesRepository;
 
@@ -13,7 +15,7 @@ describe('ExamesRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new ExamesRepository(exameModelMock as any);
+    repository = new ExamesRepository(exameModelMock as unknown as ExameModel);
   });
 
   it('deve criar um exame', async () => {
@@ -26,7 +28,7 @@ describe('ExamesRepository', () => {
 
     exameModelMock.create.mockResolvedValue(exameData);
 
-    const result = await repository.create(exameData as any);
+    const result = await repository.create(exameData);
 
     expect(exameModelMock.create).toHaveBeenCalledWith(exameData);
     expect(result).toEqual(exameData);
@@ -76,10 +78,12 @@ describe('ExamesRepository', () => {
   });
 
   it('deve listar todos os exames', async () => {
-    const execMock = jest.fn().mockResolvedValue([
-      { accessionNumber: 'ACC-9001' },
-      { accessionNumber: 'ACC-9002' },
-    ]);
+    const execMock = jest
+      .fn()
+      .mockResolvedValue([
+        { accessionNumber: 'ACC-9001' },
+        { accessionNumber: 'ACC-9002' },
+      ]);
 
     exameModelMock.find.mockReturnValue({
       exec: execMock,

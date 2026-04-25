@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ExamesRepository } from '../../exames/repositories/exames.repository';
 import { CreatePedidoDto } from '../dto/create-pedido.dto';
 import { PedidosRepository } from '../repositories/pedidos.repository';
-import { ExamesRepository } from '../../exames/repositories/exames.repository';
-
 
 type PedidoExameItem = {
   codigoItemPedido: number;
@@ -14,35 +13,16 @@ type PedidoExameItem = {
 @Injectable()
 export class PedidosService {
   constructor(
-
     private readonly pedidosRepository: PedidosRepository,
-
     private readonly examesRepository: ExamesRepository,
-  ) { }
+  ) {}
 
-  /**
-   * Método principal para recebimento de pedido.
-   *
-   * Regras implementadas:
-   * 1) Se o pedido não existir, cria normalmente.
-   * 2) Se o pedido já existir, adiciona apenas os exames novos.
-   * 3) Após isso, verifica se existe exame correspondente por accessionNumber.
-   * 4) Se existir, pedido.integrado = true
-   * 5) Se não existir, pedido.integrado = false
-   */
   async receberPedido(dto: CreatePedidoDto) {
-    /**
-     * Vamos para o passo um
-     */
     const pedidoExistente = await this.pedidosRepository.findByCodigoPedido(
       dto.codigoPedido,
     );
 
-    /**
-     * CASO 1: pedido ainda não existe
-     */
     if (!pedidoExistente) {
-
       const integrado = await this.existeExameCorrespondente(dto.exames);
 
       const novoPedido = await this.pedidosRepository.create({
@@ -83,20 +63,30 @@ export class PedidosService {
     };
   }
 
+  async buscarPorCodigoPedido(codigoPedido: number) {
+    const pedido =
+      await this.pedidosRepository.findByCodigoPedido(codigoPedido);
+
+    if (!pedido) {
+      throw new NotFoundException(
+        `Pedido com codigo ${codigoPedido} nao encontrado.`,
+      );
+    }
+
+    return pedido;
+  }
+
   private async existeExameCorrespondente(
     exames: PedidoExameItem[],
   ): Promise<boolean> {
-
     if (!exames || exames.length === 0) {
       return false;
     }
 
-
     for (const exameDoPedido of exames) {
-      const exameEncontrado =
-        await this.examesRepository.findByAccessionNumber(
-          exameDoPedido.accessionNumber,
-        );
+      const exameEncontrado = await this.examesRepository.findByAccessionNumber(
+        exameDoPedido.accessionNumber,
+      );
 
       if (exameEncontrado) {
         return true;
@@ -105,6 +95,7 @@ export class PedidosService {
 
     return false;
   }
+
   private filtrarExamesNovos(
     examesAtuais: PedidoExameItem[],
     examesRecebidos: PedidoExameItem[],
@@ -118,16 +109,5 @@ export class PedidosService {
 
       return !jaExiste;
     });
-  }
-  async buscarPorCodigoPedido(codigoPedido: number) {
-    const pedido = await this.pedidosRepository.findByCodigoPedido(codigoPedido);
-
-    if (!pedido) {
-      throw new NotFoundException(
-        `Pedido com codigo ${codigoPedido} não encontrado.`,
-      );
-    }
-
-    return pedido;
   }
 }

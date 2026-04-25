@@ -7,16 +7,13 @@ import { Exame, ExameDocument } from '../schemas/exame.schema';
 @Injectable()
 export class ExamesRepository {
   constructor(
-
     @InjectModel(Exame.name)
     private readonly exameModel: Model<ExameDocument>,
-  ) { }
-
+  ) {}
 
   async create(data: Partial<Exame>): Promise<ExameDocument> {
     return this.exameModel.create(data);
   }
-
 
   async findByAccessionNumber(
     accessionNumber: string,
@@ -24,20 +21,14 @@ export class ExamesRepository {
     return this.exameModel.findOne({ accessionNumber }).exec();
   }
 
-
   async updateByAccessionNumber(
     accessionNumber: string,
     data: Partial<Exame>,
   ): Promise<ExameDocument | null> {
     return this.exameModel
-      .findOneAndUpdate(
-        { accessionNumber },
-        data,
-        { new: true },
-      )
+      .findOneAndUpdate({ accessionNumber }, data, { new: true })
       .exec();
   }
-
 
   async findAll(): Promise<ExameDocument[]> {
     return this.exameModel.find().exec();

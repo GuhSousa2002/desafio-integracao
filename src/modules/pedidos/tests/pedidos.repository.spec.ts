@@ -1,5 +1,7 @@
 import { PedidosRepository } from '../repositories/pedidos.repository';
 
+type PedidoModel = ConstructorParameters<typeof PedidosRepository>[0];
+
 describe('PedidosRepository', () => {
   let repository: PedidosRepository;
 
@@ -12,7 +14,9 @@ describe('PedidosRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new PedidosRepository(pedidoModelMock as any);
+    repository = new PedidosRepository(
+      pedidoModelMock as unknown as PedidoModel,
+    );
   });
 
   it('deve criar um pedido', async () => {
@@ -23,7 +27,7 @@ describe('PedidosRepository', () => {
 
     pedidoModelMock.create.mockResolvedValue(pedidoData);
 
-    const result = await repository.create(pedidoData as any);
+    const result = await repository.create(pedidoData);
 
     expect(pedidoModelMock.create).toHaveBeenCalledWith(pedidoData);
     expect(result).toEqual(pedidoData);

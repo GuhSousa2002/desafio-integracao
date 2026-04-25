@@ -1,6 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { ExamesService } from '../services/exames.service';
 
+type ExamesServiceDependencies = ConstructorParameters<typeof ExamesService>;
+
 describe('ExamesService', () => {
   let service: ExamesService;
 
@@ -24,9 +26,9 @@ describe('ExamesService', () => {
     jest.clearAllMocks();
 
     service = new ExamesService(
-      examesRepositoryMock as any,
-      pedidosRepositoryMock as any,
-      documentosRepositoryMock as any,
+      examesRepositoryMock as unknown as ExamesServiceDependencies[0],
+      pedidosRepositoryMock as unknown as ExamesServiceDependencies[1],
+      documentosRepositoryMock as unknown as ExamesServiceDependencies[2],
     );
   });
 
@@ -117,8 +119,12 @@ describe('ExamesService', () => {
       examesRepositoryMock.findByAccessionNumber.mockResolvedValueOnce(null);
       examesRepositoryMock.create.mockResolvedValue(dto);
       pedidosRepositoryMock.findByAccessionNumber.mockResolvedValue(pedidoMock);
-      pedidosRepositoryMock.save.mockImplementation(async (pedido) => pedido);
-      documentosRepositoryMock.findPendentesByCodigoPedido.mockResolvedValue([]);
+      pedidosRepositoryMock.save.mockImplementation((pedido: unknown) =>
+        Promise.resolve(pedido),
+      );
+      documentosRepositoryMock.findPendentesByCodigoPedido.mockResolvedValue(
+        [],
+      );
 
       const result = await service.receberExame(dto);
 
@@ -155,12 +161,16 @@ describe('ExamesService', () => {
       examesRepositoryMock.findByAccessionNumber.mockResolvedValueOnce(null);
       examesRepositoryMock.create.mockResolvedValue(dto);
       pedidosRepositoryMock.findByAccessionNumber.mockResolvedValue(pedidoMock);
-      pedidosRepositoryMock.save.mockImplementation(async (pedido) => pedido);
+      pedidosRepositoryMock.save.mockImplementation((pedido: unknown) =>
+        Promise.resolve(pedido),
+      );
       documentosRepositoryMock.findPendentesByCodigoPedido.mockResolvedValue([
         documento1,
         documento2,
       ]);
-      documentosRepositoryMock.save.mockImplementation(async (documento) => documento);
+      documentosRepositoryMock.save.mockImplementation((documento: unknown) =>
+        Promise.resolve(documento),
+      );
 
       const result = await service.receberExame(dto);
 

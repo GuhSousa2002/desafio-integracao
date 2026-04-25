@@ -1,6 +1,10 @@
 import { ConflictException } from '@nestjs/common';
 import { DocumentosService } from '../services/documentos.service';
 
+type DocumentosServiceDependencies = ConstructorParameters<
+  typeof DocumentosService
+>;
+
 describe('DocumentosService', () => {
   let service: DocumentosService;
 
@@ -18,8 +22,8 @@ describe('DocumentosService', () => {
     jest.clearAllMocks();
 
     service = new DocumentosService(
-      documentosRepositoryMock as any,
-      pedidosRepositoryMock as any,
+      documentosRepositoryMock as unknown as DocumentosServiceDependencies[0],
+      pedidosRepositoryMock as unknown as DocumentosServiceDependencies[1],
     );
   });
 
@@ -32,10 +36,12 @@ describe('DocumentosService', () => {
         documento: 'base64',
       };
 
-      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue({
-        codigoDocumento: 251,
-        codigoPedido: 615,
-      });
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(
+        {
+          codigoDocumento: 251,
+          codigoPedido: 615,
+        },
+      );
 
       await expect(service.receberDocumento(dto)).rejects.toThrow(
         ConflictException,
@@ -50,9 +56,13 @@ describe('DocumentosService', () => {
         documento: 'base64',
       };
 
-      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(
+        null,
+      );
       pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue(null);
-      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+      documentosRepositoryMock.create.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberDocumento(dto);
 
@@ -72,12 +82,16 @@ describe('DocumentosService', () => {
         documento: 'base64',
       };
 
-      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(
+        null,
+      );
       pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue({
         codigoPedido: 615,
         integrado: false,
       });
-      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+      documentosRepositoryMock.create.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberDocumento(dto);
 
@@ -97,12 +111,16 @@ describe('DocumentosService', () => {
         documento: 'base64',
       };
 
-      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(null);
+      documentosRepositoryMock.findByCodigoPedidoAndCodigoDocumento.mockResolvedValue(
+        null,
+      );
       pedidosRepositoryMock.findByCodigoPedido.mockResolvedValue({
         codigoPedido: 615,
         integrado: true,
       });
-      documentosRepositoryMock.create.mockImplementation(async (data) => data);
+      documentosRepositoryMock.create.mockImplementation((data: unknown) =>
+        Promise.resolve(data),
+      );
 
       const result = await service.receberDocumento(dto);
 
@@ -131,7 +149,9 @@ describe('DocumentosService', () => {
 
       const result = await service.buscarPorCodigoPedido(615);
 
-      expect(documentosRepositoryMock.findByCodigoPedido).toHaveBeenCalledWith(615);
+      expect(documentosRepositoryMock.findByCodigoPedido).toHaveBeenCalledWith(
+        615,
+      );
       expect(result).toEqual(documentos);
     });
   });

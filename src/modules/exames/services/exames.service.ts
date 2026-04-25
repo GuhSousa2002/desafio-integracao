@@ -3,26 +3,24 @@ import { CreateExameDto } from '../dto/create-exame.dto';
 import { ExamesRepository } from '../repositories/exames.repository';
 import { PedidosRepository } from '../../pedidos/repositories/pedidos.repository';
 import { DocumentosRepository } from '../../documentos/repositories/documentos.repository';
+import { ExameDocument } from '../schemas/exame.schema';
 
 @Injectable()
 export class ExamesService {
   constructor(
-
     private readonly examesRepository: ExamesRepository,
 
     private readonly pedidosRepository: PedidosRepository,
 
     private readonly documentosRepository: DocumentosRepository,
-  ) { }
+  ) {}
 
   async receberExame(dto: CreateExameDto) {
-
     const exameExistente = await this.examesRepository.findByAccessionNumber(
       dto.accessionNumber,
     );
 
-    let exameSalvo: any;
-
+    let exameSalvo: ExameDocument | null;
 
     if (exameExistente) {
       exameSalvo = await this.examesRepository.updateByAccessionNumber(
@@ -47,18 +45,15 @@ export class ExamesService {
       };
     }
 
-
     if (!pedido.integrado) {
       pedido.integrado = true;
       await this.pedidosRepository.save(pedido);
     }
 
-
     const documentosPendentes =
       await this.documentosRepository.findPendentesByCodigoPedido(
         pedido.codigoPedido,
       );
-
 
     let quantidadeDocumentosIntegrados = 0;
 
@@ -79,9 +74,8 @@ export class ExamesService {
   }
 
   async buscarPorAccessionNumber(accessionNumber: string) {
-    const exame = await this.examesRepository.findByAccessionNumber(
-      accessionNumber,
-    );
+    const exame =
+      await this.examesRepository.findByAccessionNumber(accessionNumber);
 
     if (!exame) {
       throw new NotFoundException(

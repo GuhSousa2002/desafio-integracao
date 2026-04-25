@@ -6,14 +6,12 @@ import { PedidosRepository } from '../../pedidos/repositories/pedidos.repository
 @Injectable()
 export class DocumentosService {
   constructor(
-
     private readonly documentosRepository: DocumentosRepository,
 
     private readonly pedidosRepository: PedidosRepository,
-  ) { }
+  ) {}
 
   async receberDocumento(dto: CreateDocumentoDto) {
-
     const documentoDuplicado =
       await this.documentosRepository.findByCodigoPedidoAndCodigoDocumento(
         dto.codigoPedido,

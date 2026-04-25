@@ -1,5 +1,7 @@
 import { DocumentosRepository } from '../repositories/documentos.repository';
 
+type DocumentoModel = ConstructorParameters<typeof DocumentosRepository>[0];
+
 describe('DocumentosRepository', () => {
   let repository: DocumentosRepository;
 
@@ -12,7 +14,9 @@ describe('DocumentosRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new DocumentosRepository(documentoModelMock as any);
+    repository = new DocumentosRepository(
+      documentoModelMock as unknown as DocumentoModel,
+    );
   });
 
   it('deve criar um documento', async () => {
@@ -26,7 +30,7 @@ describe('DocumentosRepository', () => {
 
     documentoModelMock.create.mockResolvedValue(documentoData);
 
-    const result = await repository.create(documentoData as any);
+    const result = await repository.create(documentoData);
 
     expect(documentoModelMock.create).toHaveBeenCalledWith(documentoData);
     expect(result).toEqual(documentoData);
@@ -42,8 +46,10 @@ describe('DocumentosRepository', () => {
       exec: execMock,
     });
 
-    const result =
-      await repository.findByCodigoPedidoAndCodigoDocumento(615, 251);
+    const result = await repository.findByCodigoPedidoAndCodigoDocumento(
+      615,
+      251,
+    );
 
     expect(documentoModelMock.findOne).toHaveBeenCalledWith({
       codigoPedido: 615,
@@ -76,9 +82,11 @@ describe('DocumentosRepository', () => {
   });
 
   it('deve buscar documentos pendentes por codigoPedido', async () => {
-    const execMock = jest.fn().mockResolvedValue([
-      { codigoDocumento: 251, codigoPedido: 615, integrado: false },
-    ]);
+    const execMock = jest
+      .fn()
+      .mockResolvedValue([
+        { codigoDocumento: 251, codigoPedido: 615, integrado: false },
+      ]);
 
     documentoModelMock.find.mockReturnValue({
       exec: execMock,
